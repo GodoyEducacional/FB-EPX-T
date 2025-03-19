@@ -18,9 +18,9 @@ app.use(express.json());
 // CORS
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Origin", "GET, POST");
-  res.header("Access-Control-Allow-Origin", "Content-Type");
-  next;
+  res.header("Access-Control-Allow-Methods", "GET, POST");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  next();
 });
 
 // http://localhost:3000/api/cep/13455721
@@ -34,6 +34,22 @@ app.get("/api/cep/:cep", async (req, res) => {
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar o CEP!" });
+  }
+});
+
+// Rota post para salvar o endereço no MongoDB
+app.post("/api/address", async (req, res) => {
+  const { cep, logradouro, bairro, cidade, estado } = req.body; // Extrai o corpo JSON
+
+  try {
+    // Cria um novo documento de endereço usando o modelo Address
+    const newAddress = new Address({ cep, logradouro, bairro, cidade, estado });
+    await newAddress.save(); // Salva no MongoDB
+    res
+      .status(201)
+      .json({ message: "Endereço salvo com sucesso!", data: newAddress });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao salvar o endereço!" });
   }
 });
 
@@ -52,7 +68,7 @@ mongoose
   .then(() => {
     // Quando for conecto corretamente
     console.log("Conectou ao banco!"); // Exibe uma mensagem no console
-    // Inicia o sercidor após o banco de dados conectar
+    // Inicia o Servidor após o banco de dados conectar
     app.listen(port, () => {
       console.log(`Servidor rodando em http://localhost:${port}`);
     });

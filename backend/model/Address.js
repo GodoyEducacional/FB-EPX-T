@@ -7,7 +7,7 @@ const addressSchema = new mongoose.Schema(
     logradouro: { type: String, required: true },
     bairro: { type: String, required: true },
     cidade: { type: String, required: true },
-    estado: { type: String, required: true, maxlength: 2 }, // Estado somente dois carac. (SP)
+    estado: { type: String, required: true, MaxLength: 2 }, // Estado somente dois carac. (SP)
   },
   {
     timestamps: true, // Campos de criação e atualização (Dt. Hr.) automaticos
