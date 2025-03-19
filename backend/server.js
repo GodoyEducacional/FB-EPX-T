@@ -1,76 +1,71 @@
 const express = require("express");
-const axios = require("axios"); // Biblioteca para requisição HTTP
+const axios = require("axios");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-
-// Importa o modelo criado
 const Address = require("../backend/model/Address");
 
-// Carrega as variàveis de ambiente .ENV
+// Carrega as variáveis de ambiente do arquivo .ENV
 dotenv.config();
 
-// Chama o Express (Servidor)
+// Cria uma instância do Express -> Servidor
 const app = express();
 
-// Permitir JSON nas requisições
-app.use(express.json());
-
-// CORS
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header("Access-Control-Allow-Origin", "*"); // Permite qualquer origem para req.
+  res.header("Access-Control-Allow-Methods", "GET, POST"); // Permite apenas métodos GET e POST
+  res.header("Access-Control-Allow-Headers", "Content-Type"); // Permite o cabeçalho nas req.
   next();
 });
 
-// http://localhost:3000/api/cep/13455721
-// Rota GET para buscar informações conforme o CEP informado
+// JSON nas requisições / Config do Express
+app.use(express.json());
+
 app.get("/api/cep/:cep", async (req, res) => {
-  const { cep } = req.params; // Extrai o CEP da URL
+  const { cep } = req.params; // Extrai o Cep
 
   try {
-    // Faz requisição GET para API ViaCEP, passando o CEP
+    // Requisição GET para a API ViaCep, passando um Cep
     const response = await axios.get(`https://viacep.com.br/ws/${cep}/json`);
-    res.json(response.data);
+    res.json(response.data); // Retorna da API a resposta conforme o CEP
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar o CEP!" });
+    res.status(500).json({ error: "Erro ao buscar o CEP!" }); // Em caso de erro
   }
 });
 
-// Rota post para salvar o endereço no MongoDB
 app.post("/api/address", async (req, res) => {
-  const { cep, logradouro, bairro, cidade, estado } = req.body; // Extrai o corpo JSON
+  // Corpo que deve ser enviado:
+  const { cep, logradouro, bairro, cidade, estado } = req.body;
 
   try {
-    // Cria um novo documento de endereço usando o modelo Address
     const newAddress = new Address({ cep, logradouro, bairro, cidade, estado });
-    await newAddress.save(); // Salva no MongoDB
+    await newAddress.save(); // Salva o endereço no banco de dados
+    // Retorna sucesso com os dados salvos
     res
       .status(201)
       .json({ message: "Endereço salvo com sucesso!", data: newAddress });
   } catch (error) {
+    // Retorna erro se não salvar
     res.status(500).json({ error: "Erro ao salvar o endereço!" });
   }
 });
 
-// Obtem as credenciais do MongoDB armazernada no .env
+// Obtem as variaveis do .ENV
 const dbUser = process.env.DB_USER;
 const dbPassword = process.env.DB_PASS;
 
-// Cria a string de conexão com o MongoDB
+// Define o Link de conexão com o MongoDB Atlas
 const mongoURI = `mongodb+srv://${dbUser}:${dbPassword}@clusterapi.h93mb.mongodb.net/?retryWrites=true&w=majority&appName=ClusterAPI`;
 
-// Define a porta que o servidor irá executar
+// Porta que roda o servidor
 const port = 3000;
 
 mongoose
-  .connect(mongoURI) // Conecta ao banco pelo Linl
+  .connect(mongoURI) // Conecta ao banco de dados com o Link gerado
   .then(() => {
-    // Quando for conecto corretamente
-    console.log("Conectou ao banco!"); // Exibe uma mensagem no console
-    // Inicia o Servidor após o banco de dados conectar
+    // Quando for conexão bem sucedida
+    console.log("Conectou ao Banco");
     app.listen(port, () => {
       console.log(`Servidor rodando em http://localhost:${port}`);
     });
   })
-  .catch((err) => console.log("Erro ao conectar ao MongoDB!", err)); // Exibe o erro
+  .catch((err) => console.log("Erro ao conectar ao MongoDB", err));

@@ -42,7 +42,7 @@ document.getElementById("cep").addEventListener("blur", async function () {
 
 // Adiciona o envio da informaçãio ao DB
 document
-  .getElementById("adressForm")
+  .getElementById("addressForm")
   .addEventListener("submit", async function (e) {
     e.preventDefault(); // Impende o carregamento da página ao enviar o Formulário
 
